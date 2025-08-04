@@ -1,0 +1,9 @@
+streamlit
+google-api-python-client
+google-auth
+google-auth-oauthlib
+PyYAML
+requests
+beautifulsoup4
+googlesearch-python
+html2text
