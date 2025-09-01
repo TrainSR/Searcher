@@ -196,7 +196,6 @@ if template_custome:
 else: 
     template_file = load_secret_value("app_config","fandom_template")
 
-st.write(template_file)
 query = st.text_input("🔍 Nhập tên nhân vật:")
 manual_link = st.sidebar.text_input("🔗 Nhập link trực tiếp (nếu có):")
 
@@ -226,3 +225,4 @@ if link:
                 wiki_name = extract_wiki_name(title_tag.text.strip())
             result = format_output(name, image, nickname, sections, wiki_name, info_dump, template_file)
             st.code(result, language="markdown")
+
