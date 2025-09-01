@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup, NavigableString
 from googlesearch import search
 import html2text
-from drive_module.drive_ops import get_file_content  # Import đúng từ package của bạn
+from drive_module.drive_ops import get_file_content, get_file_id_from_link  # Import đúng từ package của bạn
 from drive_module.auth import load_secret_value
 
 def format_output(name, image, nickname, sections, series, info_dump, template_file_id):
@@ -189,28 +189,40 @@ def info_dumping(soup):
 
 # --- Streamlit UI ---
 st.title("🧠 Fandom Character Extractor")
+link = None
+template_custome = st.sidebar.text_input("Nhập link template")
+if template_custome: 
+    template_file = get_file_id_from_link(template_custome)
+else: 
+    template_file = load_secret_value("app_config","fandom_template")
 
+st.write(template_file)
 query = st.text_input("🔍 Nhập tên nhân vật:")
+manual_link = st.sidebar.text_input("🔗 Nhập link trực tiếp (nếu có):")
 
-if query:
+link = None
+
+if manual_link:
+    link = manual_link  # Ưu tiên link nhập tay
+elif query:
     with st.spinner("Đang tìm kiếm..."):
         link = get_first_fandom_link(query)
     if not link:
         st.error("Không tìm thấy liên kết Fandom phù hợp.")
-    else:
-        st.success(f"🔗 Đã tìm thấy: {link}")
-        with st.spinner("Đang trích xuất nội dung..."):
-            response = requests.get(link, headers={"User-Agent": "Mozilla/5.0"})
-            if response.status_code != 200:
-                st.error("❌ Không thể truy cập trang.")
-            else:
-                soup = BeautifulSoup(response.text, "html.parser")
-                name, image = extract_metadata(soup)
-                nickname = extract_epithet_and_info(soup)
-                sections = extract_sections(soup)
-                title_tag = soup.find("title")
-                info_dump = info_dumping(soup)
-                if title_tag:
-                    wiki_name = extract_wiki_name(title_tag.text.strip())
-                result = format_output(name, image, nickname, sections, wiki_name, info_dump, load_secret_value("app_config","fandom_template"))
-                st.code(result, language="markdown")
+if link:
+    st.success(f"🔗 Đã tìm thấy: {link}")
+    with st.spinner("Đang trích xuất nội dung..."):
+        response = requests.get(link, headers={"User-Agent": "Mozilla/5.0"})
+        if response.status_code != 200:
+            st.error("❌ Không thể truy cập trang.")
+        else:
+            soup = BeautifulSoup(response.text, "html.parser")
+            name, image = extract_metadata(soup)
+            nickname = extract_epithet_and_info(soup)
+            sections = extract_sections(soup)
+            title_tag = soup.find("title")
+            info_dump = info_dumping(soup)
+            if title_tag:
+                wiki_name = extract_wiki_name(title_tag.text.strip())
+            result = format_output(name, image, nickname, sections, wiki_name, info_dump, template_file)
+            st.code(result, language="markdown")
