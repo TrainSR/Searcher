@@ -8,6 +8,11 @@ import html2text
 from drive_module.drive_ops import get_file_content, get_file_id_from_link  # Import đúng từ package của bạn
 from drive_module.auth import load_secret_value
 
+
+def reset_manual_link():
+    st.session_state["manual_link_input"] = ""
+
+    
 def format_output(name, image, nickname, sections, series, info_dump, template_file_id):
     template = get_file_content(template_file_id)
 
@@ -197,10 +202,10 @@ else:
     template_file = load_secret_value("app_config","fandom_template")
 
 query = st.text_input("🔍 Nhập tên nhân vật:")
-manual_link = st.sidebar.text_input("🔗 Nhập link trực tiếp (nếu có):")
+manual_link = st.sidebar.text_input("🔗 Nhập link trực tiếp (nếu có):", key="manual_link_input")
 
 link = None
-
+filename = st.text_input("Nhập tên file (không cần .md):", value="")
 if manual_link:
     link = manual_link  # Ưu tiên link nhập tay
 elif query:
@@ -208,7 +213,7 @@ elif query:
         link = get_first_fandom_link(query)
     if not link:
         st.error("Không tìm thấy liên kết Fandom phù hợp.")
-if link:
+if link and filename:
     st.success(f"🔗 Đã tìm thấy: {link}")
     with st.spinner("Đang trích xuất nội dung..."):
         response = requests.get(link, headers={"User-Agent": "Mozilla/5.0"})
@@ -225,4 +230,11 @@ if link:
                 wiki_name = extract_wiki_name(title_tag.text.strip())
             result = format_output(name, image, nickname, sections, wiki_name, info_dump, template_file)
             st.code(result, language="markdown")
-
+            filename = st.text_input("Nhập tên file (không cần .md):", value="")
+            st.download_button(
+                label="Tải file Markdown",
+                data=result.encode('utf-8'),
+                file_name=f"{filename}.md",
+                mime="text/markdown",
+                on_click=reset_manual_link
+            )
