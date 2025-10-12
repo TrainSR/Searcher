@@ -230,7 +230,6 @@ if link and filename:
                 wiki_name = extract_wiki_name(title_tag.text.strip())
             result = format_output(name, image, nickname, sections, wiki_name, info_dump, template_file)
             st.code(result, language="markdown")
-            filename = st.text_input("Nhập tên file (không cần .md):", value="")
             st.download_button(
                 label="Tải file Markdown",
                 data=result.encode('utf-8'),
