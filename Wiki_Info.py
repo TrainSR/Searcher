@@ -7,11 +7,22 @@ from googlesearch import search
 import html2text
 from drive_module.drive_ops import get_file_content, get_file_id_from_link  # Import đúng từ package của bạn
 from drive_module.auth import load_secret_value
+import re
 
 
 def reset_manual_link():
     st.session_state["manual_link_input"] = ""
 
+    filename = st.session_state.get("download_name", "")
+    match = re.match(r"^(.*?)(\d+)$", filename)
+    if match:
+        base_name = match.group(1)
+        number = int(match.group(2))
+        new_filename = f"{base_name}{number + 1}"
+    else:
+        # Nếu không có số ở cuối, thêm "1"
+        new_filename = f"{filename}1" if filename else "file1"
+    st.session_state["download_name"] = new_filename
     
 def format_output(name, image, nickname, sections, series, info_dump, template_file_id):
     template = get_file_content(template_file_id)
@@ -205,7 +216,7 @@ query = st.text_input("🔍 Nhập tên nhân vật:")
 manual_link = st.sidebar.text_input("🔗 Nhập link trực tiếp (nếu có):", key="manual_link_input")
 
 link = None
-filename = st.text_input("Nhập tên file (không cần .md):", value="")
+filename = st.text_input("Nhập tên file (không cần .md):", value="", key="download_name")
 if manual_link:
     link = manual_link  # Ưu tiên link nhập tay
 elif query:
