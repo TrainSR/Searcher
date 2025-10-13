@@ -240,6 +240,7 @@ if link and filename:
             if title_tag:
                 wiki_name = extract_wiki_name(title_tag.text.strip())
             result = format_output(name, image, nickname, sections, wiki_name, info_dump, template_file)
+            result += f"\n\n[[{filename} - {name}]]"
             st.code(result, language="markdown")
             st.sidebar.download_button(
                 label="Tải file Markdown",
