@@ -207,10 +207,10 @@ def info_dumping(soup):
 st.title("🧠 Fandom Character Extractor")
 link = None
 template_custome = st.sidebar.text_input("Nhập link template")
-if template_custome: 
-    template_file = get_file_id_from_link(template_custome)
-else: 
+if template_custome == "HazardOn!":
     template_file = load_secret_value("app_config","fandom_template")
+else: 
+    template_file = get_file_id_from_link(template_custome)
 
 query = st.text_input("🔍 Nhập tên nhân vật:")
 manual_link = st.sidebar.text_input("🔗 Nhập link trực tiếp (nếu có):", key="manual_link_input")
@@ -224,7 +224,7 @@ elif query:
         link = get_first_fandom_link(query)
     if not link:
         st.error("Không tìm thấy liên kết Fandom phù hợp.")
-if link and filename:
+if link and filename and template_custome:
     st.success(f"🔗 Đã tìm thấy: {link}")
     with st.spinner("Đang trích xuất nội dung..."):
         response = requests.get(link, headers={"User-Agent": "Mozilla/5.0"})
@@ -240,12 +240,11 @@ if link and filename:
             if title_tag:
                 wiki_name = extract_wiki_name(title_tag.text.strip())
             result = format_output(name, image, nickname, sections, wiki_name, info_dump, template_file)
-            result += f"\n\n[[{filename} - {name}]]"
             st.code(result, language="markdown")
             st.sidebar.download_button(
                 label="Tải file Markdown",
                 data=result.encode('utf-8'),
-                file_name=f"{filename}.md",
+                file_name=f"{filename} - {name}.md",
                 mime="text/markdown",
                 on_click=reset_manual_link
             )
